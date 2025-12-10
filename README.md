@@ -67,10 +67,10 @@ hk-immd-passenger-traffic-analysis/
 ├── reports/                     # Reports and presentations
 │   ├── presentation.pptx        # PowerPoint presentation (20 slides max, as per project guidelines)
 │   └── final_report.pdf         # Final project report (PDF exported from Jupyter with >1000 words explanations)
-├── .gitignore                # Git ignore file (excludes temp files, environments, etc.)
-├── requirements.txt          # Project dependencies (pip-installable list)
-├── README.md                 # This file (project overview and documentation)
-└── LICENSE                   # MIT License
+├── .gitignore                   # Git ignore file (excludes temp files, environments, etc.)
+├── requirements.txt             # Project dependencies (pip-installable list)
+├── README.md                    # This file (project overview and documentation)
+└── LICENSE                      # MIT License
 ```
 
 ## 🚀 Getting Started
