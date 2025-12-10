@@ -265,41 +265,66 @@ class TrafficModels:
         print("\n" + "=" * 60)
         print("Logistic Regression Analysis")
         print("=" * 60)
-        
+    
         if self.problem_type != 'classification':
             print("⚠️  Switching to classification mode...")
             self.problem_type = 'classification'
-        
+    
         data = self.data if self.data else self.prepare_data()
-        
-        # Train model
-        model = LogisticRegression(max_iter=1000, random_state=42, class_weight='balanced')
+    
+        # Check number of classes
+        n_classes = len(np.unique(data['y_train']))
+    
+        if n_classes > 2:
+            print(f"⚠️  Multiclass classification detected ({n_classes} classes)")
+            # Use appropriate parameters for multiclass
+            multi_class = 'multinomial' if n_classes > 2 else 'auto'
+            solver = 'lbfgs' if n_classes > 2 else 'lbfgs'
+        else:
+            multi_class = 'auto'
+            solver = 'lbfgs'
+    
+        # Train model with appropriate parameters
+        model = LogisticRegression(max_iter=1000, random_state=42, 
+                              class_weight='balanced',
+                              multi_class=multi_class,
+                              solver=solver)
         model.fit(data['X_train'], data['y_train'])
-        
+    
         # Predictions
         y_pred_train = model.predict(data['X_train'])
         y_pred_test = model.predict(data['X_test'])
-        y_pred_proba = model.predict_proba(data['X_test'])[:, 1]
-        
-        # Calculate metrics
+        y_pred_proba = model.predict_proba(data['X_test'])
+    
+        # Calculate metrics - handle multiclass
         accuracy_train = accuracy_score(data['y_train'], y_pred_train)
         accuracy_test = accuracy_score(data['y_test'], y_pred_test)
-        precision = precision_score(data['y_test'], y_pred_test, zero_division=0)
-        recall = recall_score(data['y_test'], y_pred_test, zero_division=0)
-        f1 = f1_score(data['y_test'], y_pred_test, zero_division=0)
-        
-        # ROC Curve metrics
-        fpr, tpr, thresholds = roc_curve(data['y_test'], y_pred_proba)
-        roc_auc = auc(fpr, tpr)
-        
+    
+        # For multiclass, use average='weighted'
+        average_method = 'weighted' if n_classes > 2 else 'binary'
+    
+        precision = precision_score(data['y_test'], y_pred_test, 
+                               average=average_method, zero_division=0)
+        recall = recall_score(data['y_test'], y_pred_test, 
+                         average=average_method, zero_division=0)
+        f1 = f1_score(data['y_test'], y_pred_test, 
+                 average=average_method, zero_division=0)
+    
+        # ROC AUC only for binary classification
+        roc_auc = None
+        if n_classes == 2 and y_pred_proba.shape[1] == 2:
+            from sklearn.metrics import roc_curve, auc
+            fpr, tpr, thresholds = roc_curve(data['y_test'], y_pred_proba[:, 1])
+            roc_auc = auc(fpr, tpr)
+    
         # Classification report
         report = classification_report(data['y_test'], y_pred_test, output_dict=True)
         cm = confusion_matrix(data['y_test'], y_pred_test)
-        
+    
         # Cross-validation
         cv_scores = cross_val_score(model, data['X_train'], data['y_train'], 
-                                   cv=5, scoring='accuracy')
-        
+                               cv=5, scoring='accuracy')
+    
         # Store results
         self.models['logistic_regression'] = model
         res = {
@@ -315,47 +340,56 @@ class TrafficModels:
                 'precision': precision,
                 'recall': recall,
                 'f1_score': f1,
-                'roc_auc': roc_auc
+                'roc_auc': roc_auc,
+                'n_classes': n_classes
             },
             'classification_report': report,
             'confusion_matrix': cm,
-            'roc_curve': {'fpr': fpr, 'tpr': tpr, 'thresholds': thresholds},
-            'coefficients': dict(zip(self.features, model.coef_[0])),
+            'coefficients': dict(zip(self.features, model.coef_[0])) if n_classes == 2 else {},
             'cv_scores': cv_scores,
             'cv_mean': cv_scores.mean(),
             'cv_std': cv_scores.std()
         }
         self.results['logistic_regression'] = res
-        
+    
         # Print results
-        print("\n📈 Model Performance:")
+        print(f"\n📈 Model Performance (n_classes={n_classes}):")
         print(f"  Training Accuracy: {accuracy_train:.4f}")
         print(f"  Testing Accuracy:  {accuracy_test:.4f}")
-        print(f"  Precision: {precision:.4f}")
-        print(f"  Recall:    {recall:.4f}")
-        print(f"  F1-Score:  {f1:.4f}")
-        print(f"  ROC AUC:   {roc_auc:.4f}")
+    
+        if n_classes > 2:
+            print(f"  Weighted Precision: {precision:.4f}")
+            print(f"  Weighted Recall:    {recall:.4f}")
+            print(f"  Weighted F1-Score:  {f1:.4f}")
+        else:
+            print(f"  Precision: {precision:.4f}")
+            print(f"  Recall:    {recall:.4f}")
+            print(f"  F1-Score:  {f1:.4f}")
+            if roc_auc is not None:
+                print(f"  ROC AUC:   {roc_auc:.4f}")
+    
         print(f"  5-Fold CV Accuracy: {cv_scores.mean():.4f} (±{cv_scores.std():.4f})")
-        
+    
         print("\n📋 Classification Report:")
         print(classification_report(data['y_test'], y_pred_test))
-        
-        print("\n🔍 Top 5 Feature Coefficients:")
-        coeff_df = pd.DataFrame({
-            'Feature': self.features,
-            'Coefficient': model.coef_[0]
-        })
-        coeff_df['Abs_Coefficient'] = np.abs(coeff_df['Coefficient'])
-        top_features = coeff_df.nlargest(5, 'Abs_Coefficient')
-        for _, row in top_features.iterrows():
-            print(f"  {row['Feature']:25s}: {row['Coefficient']:.6f}")
-        
+    
+        if n_classes == 2:
+            print("\n🔍 Top 5 Feature Coefficients:")
+            coeff_df = pd.DataFrame({
+                'Feature': self.features,
+                'Coefficient': model.coef_[0]
+            })
+            coeff_df['Abs_Coefficient'] = np.abs(coeff_df['Coefficient'])
+            top_features = coeff_df.nlargest(5, 'Abs_Coefficient')
+            for _, row in top_features.iterrows():
+                print(f"  {row['Feature']:25s}: {row['Coefficient']:.6f}")
+    
         # Generate visualizations
         if show_plots and self.visualization_available:
             self._plot_logistic_regression_results(res, data, save_plots)
         elif show_plots:
             print("⚠️  Visualization skipped - module not available")
-        
+    
         print("\n✅ Logistic Regression completed successfully!")
         return res
     
@@ -416,38 +450,50 @@ class TrafficModels:
         print("\n" + "=" * 60)
         print(f"SVM Classification ({kernel} kernel, C={C})")
         print("=" * 60)
-        
+    
         if self.problem_type != 'classification':
             print("⚠️  Switching to classification mode...")
             self.problem_type = 'classification'
-        
+    
         data = self.data if self.data else self.prepare_data()
-        
+    
+        # Check number of classes
+        n_classes = len(np.unique(data['y_train']))
+    
         # Train model
         model = SVC(kernel=kernel, C=C, probability=True, random_state=42, 
-                   class_weight='balanced')
+               class_weight='balanced')
         model.fit(data['X_train'], data['y_train'])
-        
+    
         # Predictions
         y_pred_train = model.predict(data['X_train'])
         y_pred_test = model.predict(data['X_test'])
-        y_pred_proba = model.predict_proba(data['X_test'])[:, 1]
-        
-        # Calculate metrics
+    
+        # Calculate probabilities only if we can
+        y_pred_proba = None
+        try:
+            y_pred_proba = model.predict_proba(data['X_test'])
+        except:
+            print("⚠️  Probability prediction not available")
+    
+        # Calculate metrics - handle multiclass
         accuracy_train = accuracy_score(data['y_train'], y_pred_train)
         accuracy_test = accuracy_score(data['y_test'], y_pred_test)
-        precision = precision_score(data['y_test'], y_pred_test, zero_division=0)
-        recall = recall_score(data['y_test'], y_pred_test, zero_division=0)
-        f1 = f1_score(data['y_test'], y_pred_test, zero_division=0)
-        
-        # ROC Curve metrics
-        fpr, tpr, thresholds = roc_curve(data['y_test'], y_pred_proba)
-        roc_auc = auc(fpr, tpr)
-        
+    
+        # For multiclass, use average='weighted'
+        average_method = 'weighted' if n_classes > 2 else 'binary'
+    
+        precision = precision_score(data['y_test'], y_pred_test, 
+                               average=average_method, zero_division=0)
+        recall = recall_score(data['y_test'], y_pred_test, 
+                         average=average_method, zero_division=0)
+        f1 = f1_score(data['y_test'], y_pred_test, 
+                 average=average_method, zero_division=0)
+    
         # Classification report
         report = classification_report(data['y_test'], y_pred_test, output_dict=True)
         cm = confusion_matrix(data['y_test'], y_pred_test)
-        
+    
         # Store results
         model_name = f'svm_{kernel}'
         self.models[model_name] = model
@@ -464,35 +510,33 @@ class TrafficModels:
                 'precision': precision,
                 'recall': recall,
                 'f1_score': f1,
-                'roc_auc': roc_auc,
-                'support_vectors': len(model.support_vectors_)
+                'support_vectors': len(model.support_vectors_),
+                'n_classes': n_classes
             },
             'classification_report': report,
             'confusion_matrix': cm,
-            'roc_curve': {'fpr': fpr, 'tpr': tpr, 'thresholds': thresholds},
             'cv_scores': cross_val_score(model, data['X_train'], data['y_train'], cv=5)
         }
         self.results[model_name] = res
-        
+    
         # Print results
-        print("\n📈 Model Performance:")
+        print(f"\n📈 Model Performance (n_classes={n_classes}):")
         print(f"  Training Accuracy: {accuracy_train:.4f}")
         print(f"  Testing Accuracy:  {accuracy_test:.4f}")
-        print(f"  Precision: {precision:.4f}")
-        print(f"  Recall:    {recall:.4f}")
-        print(f"  F1-Score:  {f1:.4f}")
-        print(f"  ROC AUC:   {roc_auc:.4f}")
+        print(f"  Precision ({average_method}): {precision:.4f}")
+        print(f"  Recall ({average_method}):    {recall:.4f}")
+        print(f"  F1-Score ({average_method}):  {f1:.4f}")
         print(f"  Support Vectors: {len(model.support_vectors_)}")
-        
+    
         print("\n📋 Classification Report:")
         print(classification_report(data['y_test'], y_pred_test))
-        
+    
         # Generate visualizations
         if show_plots and self.visualization_available:
             self._plot_svm_results(res, data, kernel, save_plots)
         elif show_plots:
             print("⚠️  Visualization skipped - module not available")
-        
+    
         print(f"\n✅ SVM ({kernel}) completed successfully!")
         return res
     

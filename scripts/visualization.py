@@ -334,10 +334,10 @@ class TrafficVisualizer:
         return fig
     
     def plot_regression_analysis(self,
-                                y_true: np.ndarray,
-                                y_pred: np.ndarray,
-                                model_name: str = "Model",
-                                figsize: Tuple[int, int] = (15, 5)) -> Tuple[plt.Figure, Dict]:
+                            y_true: np.ndarray,
+                            y_pred: np.ndarray,
+                            model_name: str = "Model",
+                            figsize: Tuple[int, int] = (15, 5)) -> plt.Figure:  # Changed return type
         """
         Plot regression analysis results.
         
@@ -420,13 +420,14 @@ class TrafficVisualizer:
         plt.tight_layout()
         
         self.figures[f'regression_analysis_{model_name}'] = fig
-        return fig, metrics
+        return fig  # REMOVE: , metrics from return statement
     
-    def plot_feature_importance(self,
-                               feature_names: List[str],
-                               coefficients: Union[np.ndarray, Dict],
-                               title: str = "Feature Importance",
-                               figsize: Tuple[int, int] = (12, 6)) -> plt.Figure:
+    def plot_classification_analysis(self,
+                                y_true: np.ndarray,
+                                y_pred: np.ndarray,
+                                y_proba: np.ndarray = None,
+                                model_name: str = "Model",
+                                figsize: Tuple[int, int] = (15, 10)) -> plt.Figure:  # Changed return type
         """
         Plot feature importance/coefficients.
         
@@ -502,15 +503,16 @@ class TrafficVisualizer:
         plt.suptitle(title, fontsize=14, fontweight='bold', y=1.02)
         plt.tight_layout()
         
-        self.figures['feature_importance'] = fig
-        return fig
+        # Return only the figure
+        self.figures[f'classification_analysis_{model_name}'] = fig
+        return fig  # REMOVE: , metrics from return statement
     
-    def plot_classification_analysis(self,
-                                    y_true: np.ndarray,
-                                    y_pred: np.ndarray,
-                                    y_proba: np.ndarray = None,
-                                    model_name: str = "Model",
-                                    figsize: Tuple[int, int] = (15, 10)) -> Tuple[plt.Figure, Dict]:
+    def plot_clustering_analysis(self,
+                            data: pd.DataFrame,
+                            cluster_col: str = 'cluster',
+                            feature_cols: List[str] = None,
+                            title: str = "Clustering Analysis",
+                            figsize: Tuple[int, int] = (15, 10)) -> plt.Figure:  # Changed return type
         """
         Plot classification analysis results.
         
@@ -652,8 +654,9 @@ class TrafficVisualizer:
         plt.suptitle(f'{model_name} - Classification Analysis', fontsize=14, fontweight='bold', y=1.02)
         plt.tight_layout()
         
-        self.figures[f'classification_analysis_{model_name}'] = fig
-        return fig, metrics
+        # Return only the figure
+        self.figures['clustering_analysis'] = fig
+        return fig  # REMOVE: , cluster_stats from return statement
     
     def plot_clustering_analysis(self,
                                 data: pd.DataFrame,
