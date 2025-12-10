@@ -53,6 +53,7 @@ This project leverages open data from the Hong Kong Immigration Department to:
 
 ## 📂 Project Structure
 
+```
 hk-immd-passenger-traffic-analysis/
 ├── data/                  # Data directory
 │   ├── raw/               # Original, immutable data (e.g., CSV files from IMMD)
@@ -70,6 +71,7 @@ hk-immd-passenger-traffic-analysis/
 ├── requirements.txt       # Project dependencies (pip-installable list)
 ├── README.md              # This file (project overview and documentation)
 └── LICENSE                # MIT License
+```
 
 ## 🚀 Getting Started
 
