@@ -21,7 +21,7 @@ class TrafficVisualizer:
         plt.style.use('seaborn-v0_8-darkgrid')
         sns.set_palette("husl")
         
-    def plot_time_series(self, date_col='date', value_col='passenger_count', 
+    def plot_time_series(self, date_col='date', value_col='total', 
                         title='Daily Passenger Traffic Over Time'):
         """Plot time series of passenger traffic."""
         fig, ax = plt.subplots(figsize=(15, 6))
@@ -30,7 +30,6 @@ class TrafficVisualizer:
             ax.plot(self.df[date_col], self.df[value_col], 
                    linewidth=1, alpha=0.7, label='Daily Traffic')
             
-            # Add rolling average
             rolling_mean = self.df[value_col].rolling(window=30).mean()
             ax.plot(self.df[date_col], rolling_mean, 
                    linewidth=2, color='red', label='30-day Moving Average')
@@ -92,7 +91,7 @@ class TrafficVisualizer:
         plt.tight_layout()
         return fig
     
-    def plot_clusters(self, features, clusters, title='K-means Clustering Results'):
+    def plot_clusters(self, features, clusters, cluster_col='cluster', value_col='total', title='K-means Clustering Results'):
         """Visualize clustering results."""
         fig = plt.figure(figsize=(15, 5))
         
@@ -106,11 +105,11 @@ class TrafficVisualizer:
         plt.colorbar(scatter, ax=ax1)
         
         # Time series with clusters
-        if 'date' in self.df.columns:
+        if cluster_col in self.df.columns and 'date' in self.df.columns and value_col in self.df.columns:
             ax2 = fig.add_subplot(132)
-            for cluster in sorted(self.df['cluster'].unique()):
-                cluster_data = self.df[self.df['cluster'] == cluster]
-                ax2.scatter(cluster_data['date'], cluster_data['passenger_count'], 
+            for cluster in sorted(self.df[cluster_col].unique()):
+                cluster_data = self.df[self.df[cluster_col] == cluster]
+                ax2.scatter(cluster_data['date'], cluster_data[value_col], 
                           alpha=0.6, label=f'Cluster {cluster}', s=10)
             ax2.set_xlabel('Date')
             ax2.set_ylabel('Passenger Count')
@@ -135,15 +134,15 @@ class TrafficVisualizer:
         """Plot feature importance from linear models."""
         fig, ax = plt.subplots(figsize=(10, 6))
         
-        # Create DataFrame for sorting
-        importance_df = pd.DataFrame({
+        feat_df = pd.DataFrame({
             'feature': feature_names,
-            'importance': np.abs(coefficients)
-        }).sort_values('importance', ascending=True)
+            'coef': coefficients
+        })
+        feat_df['abs_coef'] = feat_df['coef'].abs()
+        feat_df = feat_df.sort_values('abs_coef', ascending=True)
         
-        colors = ['red' if x < 0 else 'blue' for x in coefficients]
-        bars = ax.barh(importance_df['feature'], importance_df['importance'], 
-                      color=colors[:len(importance_df)])
+        colors = ['red' if x < 0 else 'blue' for x in feat_df['coef']]
+        bars = ax.barh(feat_df['feature'], feat_df['abs_coef'], color=colors)
         
         ax.set_xlabel('Absolute Coefficient Value', fontsize=12)
         ax.set_title(title, fontsize=14, fontweight='bold')

@@ -4,7 +4,6 @@ Updated for the actual dataset format.
 """
 import pandas as pd
 import numpy as np
-from datetime import datetime
 import holidays
 from typing import Tuple, List
 
@@ -25,22 +24,84 @@ class DataPreprocessor:
         self.df = None
         
     def load_data(self) -> pd.DataFrame:
-        """Load raw data from CSV with proper parsing."""
+        """Load raw data from CSV with robust parsing and header normalization."""
         print("Loading data...")
+        # Read without forcing parse_dates so header normalization can be robust
+        self.df = pd.read_csv(self.data_path, skipinitialspace=True)
         
-        # Load with correct date format
-        self.df = pd.read_csv(
-            self.data_path, 
-            parse_dates=['Date'],
-            dayfirst=True  # Important: date format is DD-MM-YYYY
-        )
+        # Drop completely empty / unnamed columns (trailing commas create these)
+        self.df.dropna(axis=1, how='all', inplace=True)
+        self.df = self.df.loc[:, ~self.df.columns.str.contains('^Unnamed', na=False)]
         
-        # Rename columns for easier access
-        self.df.columns = [
-            'date', 'control_point', 'arrival_departure', 
-            'hk_residents', 'mainland_visitors', 'other_visitors', 
-            'total'
-        ]
+        # Normalize header names (strip, lower) and map to internal names
+        orig_cols = list(self.df.columns)
+        norm_map = {c: c.strip().lower() for c in orig_cols}
+        self.df.rename(columns={k: v for k, v in norm_map.items()}, inplace=True)
+        
+        # Map normalized names to internal canonical names
+        name_map = {
+            'date': 'date',
+            'control point': 'control_point',
+            'control_point': 'control_point',
+            'arrival / departure': 'arrival_departure',
+            'arrival/departure': 'arrival_departure',
+            'arrival_departure': 'arrival_departure',
+            'hong kong residents': 'hk_residents',
+            'hong kong resident': 'hk_residents',
+            'hk residents': 'hk_residents',
+            'mainland visitors': 'mainland_visitors',
+            'other visitors': 'other_visitors',
+            'total': 'total'
+        }
+        col_rename = {}
+        for c in self.df.columns:
+            key = c.strip().lower()
+            if key in name_map:
+                col_rename[c] = name_map[key]
+        # Fallback positional mapping if needed
+        if not col_rename and self.df.shape[1] >= 7:
+            col_rename = {
+                self.df.columns[0]: 'date',
+                self.df.columns[1]: 'control_point',
+                self.df.columns[2]: 'arrival_departure',
+                self.df.columns[3]: 'hk_residents',
+                self.df.columns[4]: 'mainland_visitors',
+                self.df.columns[5]: 'other_visitors',
+                self.df.columns[6]: 'total'
+            }
+        self.df.rename(columns=col_rename, inplace=True)
+        
+        # Parse date column (find it robustly)
+        date_col = None
+        for c in self.df.columns:
+            if c.lower() == 'date' or 'date' in c.lower():
+                date_col = c
+                break
+        if date_col is None:
+            raise ValueError("Date column not found")
+        # Parse date with dayfirst
+        self.df[date_col] = pd.to_datetime(self.df[date_col], dayfirst=True, errors='coerce')
+        self.df.rename(columns={date_col: 'date'}, inplace=True)
+        
+        # Normalize control_point text and canonicalize common variants
+        self.df['control_point'] = self.df['control_point'].astype(str).str.strip()
+        cp_map = {
+            'lok ma chau spur line': 'Lok Ma Chau',
+            'lok ma chau': 'Lok Ma Chau',
+            'express rail link west kowloon': 'West Kowloon',
+            'hong kong-zhuhai-macao bridge': 'HKZMB',
+            'kai tak cruise terminal': 'Kai Tak Cruise Terminal'
+        }
+        self.df['control_point'] = (self.df['control_point'].str.lower()
+                                    .replace(cp_map)
+                                    .str.title()
+                                    .replace({'Hkzmb': 'HKZMB', 'West Kowloon': 'West Kowloon'}))
+        
+        # Final check: ensure required columns exist
+        required = {'date','control_point','arrival_departure','hk_residents','mainland_visitors','other_visitors','total'}
+        missing = required - set(self.df.columns)
+        if missing:
+            raise ValueError(f"Missing required columns after load/rename: {missing}")
         
         print(f"Data shape: {self.df.shape}")
         print(f"Date range: {self.df['date'].min()} to {self.df['date'].max()}")
