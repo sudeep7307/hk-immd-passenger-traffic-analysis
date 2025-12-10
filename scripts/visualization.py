@@ -1518,8 +1518,18 @@ if __name__ == "__main__":
     fig3 = viz.plot_seasonality(title='Sample Seasonality Analysis')
     plt.show()
     
-    # Control point comparison
-    fig4 = viz.plot_control_point_comparison(title='Sample Control Point Comparison')
+    # Control point comparison - FIXED: Pass the data parameter
+    fig4 = viz.plot_control_point_comparison(
+        data=sample_data,  # Add this parameter
+        title='Sample Control Point Comparison'
+    )
+    plt.show()
+    
+    # Also demonstrate the control point time series
+    fig5 = viz.plot_control_point_time_series(
+        data=sample_data,
+        title='Sample Control Point Time Series'
+    )
     plt.show()
     
     print("\n✅ Visualization demo completed successfully!")

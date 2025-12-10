@@ -1,61 +1,320 @@
 # Project Configuration
 project:
   name: "HK Immigration Passenger Traffic Analysis"
-  author: "Your Name"
+  author: "Luk Ka Chun"
   student_id: "Your Student ID"
-  course: "Data Science"
+  email: "solarlaziers_ultra@outlook.com"
+  course: "DIT 5412 Data Science"
   institution: "THEi FDE"
   semester: "1 AY2025/26"
+  version: "1.0.0"
+  
+  # Project structure
+  create_dirs: true
+  required_dirs:
+    - "data/raw"
+    - "data/processed"
+    - "data/interim"
+    - "reports/figures"
+    - "reports/tables"
+    - "models"
+    - "logs"
+    - "notebooks"
+    - "src"
 
 # Data Configuration
 data:
+  # Data sources
   source_url: "https://data.gov.hk/en-data/dataset/hk-immd-set5-statistics-daily-passenger-traffic/resource/e06a2a45-fe05-4eb4-9302-237d74343d52"
-  raw_path: "data/raw/passenger_traffic.csv"
-  processed_path: "data/processed/cleaned_traffic_data.csv"
+  backup_url: "https://data.gov.hk/en-data/dataset/hk-immd-set5-statistics-daily-passenger-traffic"
+  data_description: "Hong Kong Immigration Department - Statistics on Daily Passenger Traffic"
   
-  features:
-    numeric: ['month', 'day', 'day_of_week', 'is_weekend', 'is_holiday', 'quarter', 'day_of_year']
-    categorical: []  # Add if available
+  # File paths
+  raw:
+    main: "data/raw/passenger_traffic.csv"
+    backup: "data/raw/backup/passenger_traffic_backup.csv"
     
-  target: "passenger_count"
+  processed:
+    daily: "data/processed/passenger_data_daily.csv"
+    weekly: "data/processed/passenger_data_weekly.csv"
+    monthly: "data/processed/passenger_data_monthly.csv"
+    features: "data/processed/features_data.csv"
+    
+  # Data processing parameters
+  processing:
+    date_format: "%d/%m/%Y"
+    encoding: "utf-8"
+    na_values: ["-", "NA", "N/A", "null", "NULL", ""]
+    drop_threshold: 0.3  # Drop columns with more than 30% missing values
+    impute_strategy: "mean"  # mean, median, mode
+    
+  # Feature engineering
+  features:
+    base_features:
+      - "hk_residents"
+      - "mainland_visitors"
+      - "other_visitors"
+      - "total"
+      
+    temporal_features:
+      - "year"
+      - "month"
+      - "quarter"
+      - "day_of_month"
+      - "day_of_week"
+      - "week_of_year"
+      - "is_weekend"
+      - "is_month_start"
+      - "is_month_end"
+      - "season"  # Derived from month
+      
+    derived_features:
+      - "mainland_ratio"  # mainland_visitors / total
+      - "other_ratio"     # other_visitors / total
+      - "residents_ratio" # hk_residents / total
+      - "weekend_effect"  # weekend vs weekday ratio
+      
+    categorical: []
+    
+  # Target variables
+  targets:
+    regression: "total"
+    classification: "traffic_level"  # Derived: high/low based on threshold
+    clustering: ["hk_residents", "mainland_visitors", "other_visitors", "day_of_week", "month"]
+    
+  # Feature selection
+  feature_selection:
+    method: "correlation"  # correlation, variance, mutual_info
+    threshold: 0.8
 
 # Model Configuration
 models:
+  # Common settings
+  common:
+    test_size: 0.2
+    random_state: 42
+    cv_folds: 5
+    scoring:
+      regression: "r2"
+      classification: "accuracy"
+    
+  # Linear Regression
   linear_regression:
-    test_size: 0.2
-    random_state: 42
+    fit_intercept: true
+    normalize: false
+    copy_X: true
+    n_jobs: -1
     
+  # Logistic Regression
   logistic_regression:
-    test_size: 0.2
-    random_state: 42
     max_iter: 1000
+    solver: "lbfgs"
+    class_weight: "balanced"
+    multi_class: "auto"
     
+  # SVM
   svm:
-    kernel: "rbf"
-    C: 1.0
-    random_state: 42
-    
+    classification:
+      kernel: "rbf"
+      C: 1.0
+      gamma: "scale"
+      probability: true
+      class_weight: "balanced"
+      
+    regression:
+      kernel: "rbf"
+      C: 1.0
+      gamma: "scale"
+      epsilon: 0.1
+      
+  # K-means Clustering
   kmeans:
-    n_clusters: 3
-    random_state: 42
-    n_init: 10
+    n_clusters_range: [2, 10]
+    default_n_clusters: 3
+    n_init: 20
+    max_iter: 300
+    tol: 0.0001
+    algorithm: "auto"
+    
+  # Ridge Regression
+  ridge:
+    alpha: 1.0
+    fit_intercept: true
+    normalize: false
+    solver: "auto"
+    
+  # Lasso Regression
+  lasso:
+    alpha: 1.0
+    fit_intercept: true
+    normalize: false
+    max_iter: 1000
+    tol: 0.0001
+    
+  # Hyperparameter tuning
+  hyperparameter_tuning:
+    enabled: true
+    n_iter: 20
+    cv: 3
+    scoring:
+      regression: "neg_mean_squared_error"
+      classification: "f1"
+
+# Control Point Analysis
+control_points:
+  column_name: "control_point"
+  analysis:
+    top_n: 10
+    time_aggregation: "D"  # D: daily, W: weekly, M: monthly
+    comparison_metrics:
+      - "mean"
+      - "median"
+      - "std"
+      - "min"
+      - "max"
+      - "count"
+    statistical_tests:
+      enabled: true
+      alpha: 0.05
+      methods:
+        - "t_test"
+        - "mann_whitney"
+        - "anova"
 
 # Visualization Configuration
 visualization:
+  # Style settings
   style: "seaborn-v0_8-darkgrid"
   palette: "husl"
-  figsize:
-    default: [10, 6]
-    large: [15, 8]
+  context: "notebook"
+  font_scale: 1.1
   
+  # Color schemes
   colors:
     primary: "#1f77b4"
     secondary: "#ff7f0e"
-    success: "#2ca02c"
-    warning: "#d62728"
+    tertiary: "#2ca02c"
+    quaternary: "#d62728"
+    quinary: "#9467bd"
     
-# Paths
-paths:
-  figures: "reports/figures"
-  models: "models"
-  logs: "logs"
+    traffic:
+      hk_residents: "#3498db"
+      mainland_visitors: "#e74c3c"
+      other_visitors: "#2ecc71"
+      total: "#f39c12"
+      
+    control_points: 
+      - "#1f77b4"
+      - "#ff7f0e"
+      - "#2ca02c"
+      - "#d62728"
+      - "#9467bd"
+      - "#8c564b"
+      - "#e377c2"
+      - "#7f7f7f"
+      - "#bcbd22"
+      - "#17becf"
+  
+  # Figure sizes
+  figsize:
+    small: [8, 5]
+    medium: [10, 6]
+    large: [12, 8]
+    xlarge: [15, 10]
+    default: [10, 6]
+    
+  # DPI and quality
+  dpi: 300
+  bbox_inches: "tight"
+  format: "png"  # png, pdf, svg, jpg
+  
+  # Plot-specific settings
+  time_series:
+    rolling_window: 7
+    markers: true
+    
+  correlation:
+    annot: true
+    fmt: ".2f"
+    cmap: "coolwarm"
+    
+  distribution:
+    bins: 50
+    kde: true
+    
+  control_point_plots:
+    top_n: 8
+    show_annotations: true
+
+# Output Configuration
+output:
+  # Report generation
+  reports:
+    figures_dir: "reports/figures"
+    tables_dir: "reports/tables"
+    models_dir: "models"
+    logs_dir: "logs"
+    
+    # Report formats
+    formats:
+      - "html"
+      - "pdf"
+      - "markdown"
+      
+  # Model persistence
+  model_persistence:
+    save_models: true
+    format: "joblib"  # joblib, pickle
+    compress: 3
+    
+  # Results storage
+  results:
+    save_predictions: true
+    save_metrics: true
+    format: "csv"
+    
+  # Logging
+  logging:
+    level: "INFO"
+    format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+    file: "logs/project.log"
+    max_bytes: 10485760  # 10MB
+    backup_count: 5
+
+# Performance Settings
+performance:
+  # Parallel processing
+  n_jobs: -1
+  backend: "loky"  # loky, threading, multiprocessing
+  
+  # Memory management
+  memory_limit: "4GB"
+  chunk_size: 10000
+  
+  # Caching
+  cache:
+    enabled: true
+    directory: ".cache"
+    max_size: "1GB"
+
+# Validation Settings
+validation:
+  data_validation:
+    check_missing: true
+    check_duplicates: true
+    check_outliers: true
+    outlier_threshold: 3.0  # Z-score threshold
+    
+  model_validation:
+    cross_validation: true
+    cv_strategy: "kfold"
+    n_splits: 5
+    test_harness: true
+
+# Experimental Features
+experimental:
+  deep_learning: false
+  auto_ml: false
+  explainable_ai: true
+  time_series_forecasting: true
+  anomaly_detection: true

@@ -1057,7 +1057,7 @@ class TrafficModels:
     
     def run_all_models(self, regression=True, classification=True, clustering=True, 
                       control_point_analysis=True,  # New parameter
-                      show_plots=True, save_plots=False):
+                      show_plots=True, save_plots=True):
         """Run all models in a comprehensive pipeline."""
         print("=" * 70)
         print("COMPREHENSIVE MACHINE LEARNING PIPELINE")
