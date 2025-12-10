@@ -54,27 +54,22 @@ This project leverages open data from the Hong Kong Immigration Department to:
 ## 📂 Project Structure
 
 hk-immd-passenger-traffic-analysis/
-│
-├── data/ # Data directory
-│ ├── raw/ # Original, immutable data
-│ └── processed/ # Cleaned and transformed data
-│
-├── notebooks/ # Jupyter notebooks
-│ └── main_analysis.ipynb # Main analysis notebook
-│
-├── scripts/ # Python scripts
-│ ├── data_preprocessing.py # Data cleaning functions
-│ ├── models.py # ML model implementations
-│ └── visualization.py # Plotting functions
-│
-├── reports/ # Reports and presentations
-│ ├── presentation.pptx # PowerPoint presentation
-│ └── final_report.pdf # Final project report
-│
-├── .gitignore # Git ignore file
-├── requirements.txt # Project dependencies
-├── README.md # This file
-└── LICENSE # MIT License
+├── data/                  # Data directory
+│   ├── raw/               # Original, immutable data (e.g., CSV files from IMMD)
+│   └── processed/         # Cleaned and transformed data (e.g., merged datasets with features)
+├── notebooks/             # Jupyter notebooks
+│   └── main_analysis.ipynb # Main analysis notebook (EDA, models, insights)
+├── scripts/               # Python scripts
+│   ├── data_preprocessing.py # Data cleaning and feature engineering functions
+│   ├── models.py          # ML model implementations (Linear Regression, K-Means, SVM)
+│   └── visualization.py   # Plotting and visualization functions
+├── reports/               # Reports and presentations
+│   ├── presentation.pptx  # PowerPoint presentation (20 slides max, as per project guidelines)
+│   └── final_report.pdf   # Final project report (PDF exported from Jupyter with >1000 words explanations)
+├── .gitignore             # Git ignore file (excludes temp files, environments, etc.)
+├── requirements.txt       # Project dependencies (pip-installable list)
+├── README.md              # This file (project overview and documentation)
+└── LICENSE                # MIT License
 
 ## 🚀 Getting Started
 
